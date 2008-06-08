@@ -79,15 +79,11 @@ private
   end
   
   def duplicate_children(source_page, dest_page, recursive = false)
-    source_page.children.each do |page|
-      next if page.id == @new_page.id
-      new_page = duplicate_page(page, dest_page)
+    source_page.children.each do |child|
+      next if child.id == @new_page.id
+      duplicated = duplicate_page(child, dest_page)
       if recursive
-        page.children.each do |sub_page|
-          next if sub_page.id == @new_page.id
-          new_page = duplicate_page(sub_page, new_page)
-          duplicate_children(sub_page, new_page, true)
-        end
+        duplicate_children(child, duplicated, true)
       end
     end
   end

@@ -1,3 +1,4 @@
+require 'test/unit'
 require File.dirname(__FILE__) + '/../test_helper'
 
 # Re-raise errors caught by the controller.
@@ -10,9 +11,9 @@ class CopyMoveControllerTest < Test::Unit::TestCase
   
   def setup
     @controller = CopyMoveController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    login_as(:existing)    
+    @request = ActionController::TestRequest.new
+    @response = ActionController::TestResponse.new
+    login_as(:existing)
   end
   
   def test_index_should_redirect_if_page_does_not_exist
@@ -98,9 +99,13 @@ class CopyMoveControllerTest < Test::Unit::TestCase
   end
   
   def test_copy_move_should_duplicate_page_under_one_of_its_children
+    before_structure = page_structure(Page.root)
     assert_difference Page, :count, 6 do
       post :copy_move, :id => pages(:homepage), :copy_move_action => 'tree', :parent => pages(:homepage)
     end
+    after_structure = page_structure(Page.root)
+    copied_tree = after_structure[:children].find{|c| c[:slug] == '/'}
+    assert_equal before_structure, copied_tree
   end
   
   def test_copy_move_should_duplicate_page_tree_under_one_of_its_children
@@ -162,7 +167,7 @@ class CopyMoveControllerTest < Test::Unit::TestCase
       assert_equal "extensions2", children[1].slug
       post :copy_move, :id => pages(:extensions2), :parent => pages(:projects).id
       assert_equal 3, pages(:projects).reload.children.count
-      children = pages(:projects).children
+      children = pages(:projects).children.sort{|c1,c2| c1.title <=> c2.title}
       assert_equal "Extensions", children[0].title
       assert_equal "Extensions", children[1].title
       assert_equal "Extensions (Copy)", children[2].title
